@@ -12,6 +12,10 @@ public class Stash {
 		items = new ArrayList<>();
 	}
 	
+	public Stash(List<Item> items) {
+		this.items = items;
+	}
+	
 	public List<Item> getItems() {
 		return items;
 	}

@@ -1,9 +1,11 @@
 package plugytools;
 
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import domain.Constants;
@@ -22,7 +24,7 @@ public class PlugyTools {
 		
 		String SSS = getHexStringFromRange(data, 0, 3);
 		int nbStash = 0;
-		String sharedGoldAmount = "";
+		int sharedGoldAmount = 0;
 		int startStashIndex = 0;
 		
 		if (SSS.equalsIgnoreCase("535353")) {
@@ -33,7 +35,10 @@ public class PlugyTools {
 				startStashIndex = 10;
 			} else if (fileVersion.equalsIgnoreCase("3032")) {
 				//file is version 02, has shared gold
-				sharedGoldAmount = Integer.toString(data[6]);
+				sharedGoldAmount = data[6];
+				
+				System.out.println("Shared Gold Amount: " + sharedGoldAmount);
+				
 				nbStash = data[10];
 				startStashIndex = 14;
 			} else {
@@ -71,24 +76,118 @@ public class PlugyTools {
 				System.out.println("Current JM Item Header Index: " + currentJmItemHeaderIndex);
 				int nextJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentJmItemHeaderIndex + 2);
 				String itemHex = "";
+				byte[] itemArray;
 				if (nextJmItemHeaderIndex == -1) {
 					//End of File!
-					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex+2, data.length);
+					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, data.length);
+					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, data.length-1);
 				} else if (nextJmItemHeaderIndex > nextStIndex) {
-					//Next JM header is in next stash, get itemHex from JM to ST
-					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex+2, nextStIndex);
+					//Next JM header is in next stash, get itemHex from JM to ST (exclusive)
+					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, nextStIndex);
+					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, nextStIndex);
 					currentIndex = nextStIndex;
 				} else {
-					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex+2, nextJmItemHeaderIndex);
+					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
+					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
 					currentIndex = nextJmItemHeaderIndex;
 				}
-				Item item = new Item();
-				item.setHexString(itemHex);
+				Item item = getItemFromBinaryString(itemHex, itemArray);
 				stash.getItems().add(item);
 			}
 			stashes.add(stash);
 		}
 		return stashes;
+	}
+
+	private static Item getItemFromBinaryString(String itemHex, byte[] itemArray) {
+		String binaryString = getBinaryStringFromItemArray(itemArray);
+		if (binaryString != null && !binaryString.isEmpty()) {
+			boolean isIdentified = getBooleanFromChar(binaryString, 20);
+			boolean isSocketed = getBooleanFromChar(binaryString, 27);
+			boolean isEar = getBooleanFromChar(binaryString,32);
+			boolean isSimple = getBooleanFromChar(binaryString,37);
+			boolean isEthereal = getBooleanFromChar(binaryString,38);
+			boolean isPersonalized = getBooleanFromChar(binaryString, 40);
+			boolean isRuneword = getBooleanFromChar(binaryString, 42);
+			String location = getItemLocation(binaryString);
+			int colNum = getDecimalFromSubstring(binaryString, 65, 69);
+			int rowNum = getDecimalFromSubstring(binaryString, 69, 72);
+			
+		}
+		
+		Item item = new Item(itemHex, itemArray);
+		return item;
+	}
+
+	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex) {
+		String binarySubString = binaryString.substring(beginIndex, endIndex);
+		int result = Integer.parseInt(binarySubString, 10);
+		return result;
+	}
+
+	private static String getItemLocation(String binaryString) {
+		int locationValue = getDecimalFromSubstring(binaryString, 58, 61);
+		switch (locationValue) {
+		case 0:
+			//Found in Inventory, Cube, or Stash from bit 73
+			locationValue = getDecimalFromSubstring(binaryString, 73, 76);
+			switch (locationValue) {
+			case 1:
+				return Constants.INVENTORY;
+			case 4:
+				return Constants.CUBE;
+			case 5:
+				return Constants.STASH;
+			}
+			break;
+		case 1:
+			//Found on Body, get equip from bit 61
+			locationValue = getDecimalFromSubstring(binaryString, 61, 65);
+			switch (locationValue) {
+			case 1:
+				return Constants.HELMET;
+			case 2:
+				return Constants.AMULET;
+			case 3:
+				return Constants.ARMOR;
+			case 4:
+				return Constants.RHAND;
+			case 5:
+				return Constants.LHAND;
+			case 6:
+				return Constants.RRING;
+			case 7:
+				return Constants.LRING;
+			case 8:
+				return Constants.EQUIP_BELT;
+			case 9:
+				return Constants.BOOTS;
+			case 10:
+				return Constants.GLOVES;
+			case 11:
+				return Constants.ALT_RHAND;
+			case 12:
+				return Constants.ALT_LHAND;
+			}
+		case 2:
+			return Constants.BELT;
+		case 4:
+			return Constants.MOVED;
+		case 6:
+			return Constants.SOCKET;
+		}
+		return null;
+	}
+
+	private static boolean getBooleanFromChar(String binaryString, int binaryIndex) {
+		char charFromBinaryString = binaryString.charAt(binaryIndex);
+		return ((charFromBinaryString == '0') ? false : true);
+	}
+
+	private static String getBinaryStringFromItemArray(byte[] itemArray) {
+		BigInteger bigInt = new BigInteger(itemArray);
+		String binaryString = bigInt.toString(2);
+		return binaryString;
 	}
 
 	private static int getStartIndexOfNextHeader(String header, byte[] data, int startingIndex) {
