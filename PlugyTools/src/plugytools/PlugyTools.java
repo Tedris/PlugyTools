@@ -105,12 +105,19 @@ public class PlugyTools {
 		//String binaryString = getBinaryStringFromItemArray(itemArray);
 		String binaryString = getBinaryStringFromItemHex(itemHex);
 		if (binaryString != null && !binaryString.isEmpty()) {
+			//Identified, offset 20
 			boolean isIdentified = getBooleanFromChar(binaryString, 20);
+			//Socketed, offset 27
 			boolean isSocketed = getBooleanFromChar(binaryString, 27);
+			//Ear, offset 32
 			boolean isEar = getBooleanFromChar(binaryString,32);
+			//Simple Item, offset 37
 			boolean isSimple = getBooleanFromChar(binaryString,37);
+			//Ethereal, offset 38
 			boolean isEthereal = getBooleanFromChar(binaryString,38);
+			//Personalized, offset 40
 			boolean isPersonalized = getBooleanFromChar(binaryString, 40);
+			//Runeword, offset 42
 			boolean isRuneword = getBooleanFromChar(binaryString, 42);
 			String location = getItemLocation(binaryString);
 			int colNum = getDecimalFromSubstring(binaryString, 65, 69);

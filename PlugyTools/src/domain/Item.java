@@ -3,6 +3,17 @@ package domain;
 public class Item {
 	private String hexString;
 	private byte[] itemArray;
+	private boolean isIdentified;
+	private boolean isSocketed;
+	private boolean isEar;
+	private boolean isSimple;
+	private boolean isEthereal;
+	private boolean isPersonalized;
+	private boolean isRuneword;
+	private String location;
+	private int colNum;
+	private int rowNum;
+	private String itemType;
 	
 	public Item() {
 		
