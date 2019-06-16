@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import domain.Constants;
 import domain.Item;
 import domain.Stash;
@@ -100,7 +102,8 @@ public class PlugyTools {
 	}
 
 	private static Item getItemFromBinaryString(String itemHex, byte[] itemArray) {
-		String binaryString = getBinaryStringFromItemArray(itemArray);
+		//String binaryString = getBinaryStringFromItemArray(itemArray);
+		String binaryString = getBinaryStringFromItemHex(itemHex);
 		if (binaryString != null && !binaryString.isEmpty()) {
 			boolean isIdentified = getBooleanFromChar(binaryString, 20);
 			boolean isSocketed = getBooleanFromChar(binaryString, 27);
@@ -112,16 +115,31 @@ public class PlugyTools {
 			String location = getItemLocation(binaryString);
 			int colNum = getDecimalFromSubstring(binaryString, 65, 69);
 			int rowNum = getDecimalFromSubstring(binaryString, 69, 72);
-			
+			char typeOne = (char)getDecimalFromSubstring(binaryString, 80, 88);
+			char typeTwo = (char)getDecimalFromSubstring(binaryString, 88, 96);
+			char typeThree = (char)getDecimalFromSubstring(binaryString, 96, 104);
+			String itemType = "" + typeOne + typeTwo + typeThree;
 		}
 		
 		Item item = new Item(itemHex, itemArray);
 		return item;
 	}
 
+	private static String getBinaryStringFromItemHex(String itemHex) {
+		String binaryString = "0" + new BigInteger(itemHex, 16).toString(2);
+		String reversedBinaryString = "";
+		for (int i = 16; i < binaryString.length(); i+=8) {
+			StringBuilder innerStringBuilder = new StringBuilder().append(binaryString.substring(i, i+8));
+			innerStringBuilder = innerStringBuilder.reverse();
+			reversedBinaryString += innerStringBuilder.toString();
+		}
+		String JM = binaryString.substring(0, 16);
+		return JM + reversedBinaryString;
+	}
+
 	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex) {
 		String binarySubString = binaryString.substring(beginIndex, endIndex);
-		int result = Integer.parseInt(binarySubString, 10);
+		int result = Integer.parseInt(binarySubString, 2);
 		return result;
 	}
 
@@ -185,8 +203,14 @@ public class PlugyTools {
 	}
 
 	private static String getBinaryStringFromItemArray(byte[] itemArray) {
-		BigInteger bigInt = new BigInteger(itemArray);
-		String binaryString = bigInt.toString(2);
+		String binaryString = "";
+		for (byte b : itemArray) {
+			String binaryStringFromByte = Integer.toBinaryString(b);
+			if (binaryStringFromByte.length() < 8) {
+				binaryStringFromByte = StringUtils.leftPad(binaryStringFromByte, 8, '0');
+			}
+			binaryString += binaryStringFromByte;
+		}
 		return binaryString;
 	}
 
@@ -210,8 +234,17 @@ public class PlugyTools {
 	private static String getHexStringFromRange(byte[] data, int start, int end) {
 		String result = "";
 		for (int i = start; i < end; i++) {
-			result += Integer.toHexString(data[i]);
+			result += getHexStringFromInt(data[i] & 0xff);
 		}
 		return result.toUpperCase();
+	}
+
+	private static String getHexStringFromInt(int b) {
+		String hexString = Integer.toHexString(b);
+		if (hexString.length() == 1) {
+			return "0" + hexString;
+		} else {
+			return hexString;
+		}
 	}
 }
