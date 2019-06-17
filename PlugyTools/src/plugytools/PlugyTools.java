@@ -1,5 +1,6 @@
 package plugytools;
 
+import java.io.FileWriter;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import domain.Constants;
 import domain.Item;
@@ -50,6 +53,11 @@ public class PlugyTools {
 			System.out.println("Number of stashes: " + nbStash);
 			
 			List<Stash> stashes = getStashesFromFile(data, nbStash, startStashIndex);
+			
+			try (FileWriter file = new FileWriter("teststash.json" )) {
+				ObjectMapper mapper = new ObjectMapper();
+				mapper.writeValue(file, stashes);
+			}
 			
 			System.out.println("Stashes read from file: " + stashes.size());
 		} else {
@@ -104,6 +112,7 @@ public class PlugyTools {
 	private static Item getItemFromBinaryString(String itemHex, byte[] itemArray) {
 		//String binaryString = getBinaryStringFromItemArray(itemArray);
 		String binaryString = getBinaryStringFromItemHex(itemHex);
+		Item item = new Item();
 		if (binaryString != null && !binaryString.isEmpty()) {
 			//Identified, offset 20
 			boolean isIdentified = getBooleanFromChar(binaryString, 20);
@@ -120,15 +129,23 @@ public class PlugyTools {
 			//Runeword, offset 42
 			boolean isRuneword = getBooleanFromChar(binaryString, 42);
 			String location = getItemLocation(binaryString);
+			//getting decimal number requires another reverse
 			int colNum = getDecimalFromSubstring(binaryString, 65, 69);
-			int rowNum = getDecimalFromSubstring(binaryString, 69, 72);
-			char typeOne = (char)getDecimalFromSubstring(binaryString, 80, 88);
-			char typeTwo = (char)getDecimalFromSubstring(binaryString, 88, 96);
-			char typeThree = (char)getDecimalFromSubstring(binaryString, 96, 104);
-			String itemType = "" + typeOne + typeTwo + typeThree;
+			int rowNum = getDecimalFromSubstring(binaryString, 69, 73);
+			char typeOne = (char)getDecimalFromSubstring(binaryString, 76, 84);
+			char typeTwo = (char)getDecimalFromSubstring(binaryString, 84, 92);
+			char typeThree = (char)getDecimalFromSubstring(binaryString, 92, 100);
+			char typeFour = (char)getDecimalFromSubstring(binaryString, 100, 108);
+			String itemType = "" + typeOne + typeTwo + typeThree + typeFour;
+			itemType = itemType.trim();
+			
+			//if not simple, get more item info
+			if (!isSimple) {
+				
+			}
+			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString);
 		}
 		
-		Item item = new Item(itemHex, itemArray);
 		return item;
 	}
 
@@ -146,7 +163,9 @@ public class PlugyTools {
 
 	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex) {
 		String binarySubString = binaryString.substring(beginIndex, endIndex);
-		int result = Integer.parseInt(binarySubString, 2);
+		StringBuilder reverseSubString = new StringBuilder().append(binarySubString);
+		reverseSubString = reverseSubString.reverse();
+		int result = Integer.parseInt(reverseSubString.toString(), 2);
 		return result;
 	}
 
