@@ -15,6 +15,7 @@ public class Item {
 	private int rowNum;
 	private String itemType;
 	private String binaryString;
+	private ComplexData complexData;
 	
 	public Item() {
 		
@@ -22,7 +23,7 @@ public class Item {
 
 	public Item(String hexString, byte[] itemArray, boolean isIdentified, boolean isSocketed, boolean isEar,
 			boolean isSimple, boolean isEthereal, boolean isPersonalized, boolean isRuneword, String location,
-			int colNum, int rowNum, String itemType, String binaryString) {
+			int colNum, int rowNum, String itemType, String binaryString, ComplexData complexData) {
 		super();
 		this.hexString = hexString;
 		this.itemArray = itemArray;
@@ -38,6 +39,7 @@ public class Item {
 		this.rowNum = rowNum;
 		this.itemType = itemType;
 		this.binaryString = binaryString;
+		this.setComplexData(complexData);
 	}
 
 	public String getHexString() {
@@ -150,5 +152,13 @@ public class Item {
 
 	public void setBinaryString(String binaryString) {
 		this.binaryString = binaryString;
+	}
+
+	public ComplexData getComplexData() {
+		return complexData;
+	}
+
+	public void setComplexData(ComplexData complexData) {
+		this.complexData = complexData;
 	}
 }

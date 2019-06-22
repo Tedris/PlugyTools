@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import domain.ComplexData;
 import domain.Constants;
 import domain.Item;
 import domain.Stash;
@@ -139,6 +140,7 @@ public class PlugyTools {
 			String itemType = "" + typeOne + typeTwo + typeThree + typeFour;
 			itemType = itemType.trim();
 			
+			ComplexData complexData = new ComplexData();
 			//if not simple, get more item info
 			if (!isSimple) {
 				//start at offset 111
@@ -154,7 +156,7 @@ public class PlugyTools {
 				
 				if (hasMultiplePictures) {
 					//the next 3 bits are a picture ID
-					int pictureId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+4);
+					int pictureId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3);
 					currentIndex += 3;
 				}
 				
@@ -169,36 +171,41 @@ public class PlugyTools {
 					currentIndex += 11;
 				}
 				
+				String itemQualityString = "";
 				switch (itemQuality) {
 				case 1:
 					//low quality
-					
+					itemQualityString = "LOW";
 					//id is next 3 bits
-					int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+4);
+					int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3);
 					currentIndex+=3;
 					break;
 				case 2:
 					//normal
+					itemQualityString = "NORMAL";
 					break;
 				case 3:
 					//high quality
 					//no idea what to do here
+					itemQualityString = "HIGH";
 					currentIndex+=3;
 					break;
 				case 4:
 					//magical
-					int magicPrefixId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
+					itemQualityString = "MAGIC";
+					int magicPrefixId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+11);
 					
 					//get prefix name from id
 					
-					int magicSuffixId = getDecimalFromSubstring(binaryString, currentIndex+12, currentIndex+23);
+					int magicSuffixId = getDecimalFromSubstring(binaryString, currentIndex+11, currentIndex+22);
 					
 					//get suffix name from id
 					currentIndex += 22;
 					break;
 				case 5:
 					//set
-					int setId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+13);
+					itemQualityString = "SET";
+					int setId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
 					
 					//get set name from id
 					currentIndex += 12;
@@ -210,6 +217,7 @@ public class PlugyTools {
 					
 				case 7:
 					//unique
+					itemQualityString = "UNIQUE";
 					int uniqueId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
 					
 					//get unique name from id
@@ -217,8 +225,10 @@ public class PlugyTools {
 					
 					break;
 				}
+				
+				complexData = new ComplexData(itemId, itemLevel, itemQualityString);
 			}
-			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString);
+			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData);
 		}
 		
 		return item;
