@@ -21,7 +21,7 @@ public class PlugyTools {
 	public static void main(String ... args) throws Exception {
 		//do basic stuff, try to read from sss file
 		
-		Path fileLocation = Paths.get("TestStash.sss");
+		Path fileLocation = Paths.get(args[0]);
 		
 		byte[] data = Files.readAllBytes(fileLocation);
 		
@@ -91,7 +91,7 @@ public class PlugyTools {
 					//End of File!
 					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, data.length);
 					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, data.length-1);
-				} else if (nextJmItemHeaderIndex > nextStIndex) {
+				} else if ((nextJmItemHeaderIndex > nextStIndex) && (nextStIndex != -1)) {
 					//Next JM header is in next stash, get itemHex from JM to ST (exclusive)
 					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, nextStIndex);
 					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, nextStIndex);
@@ -109,7 +109,7 @@ public class PlugyTools {
 		return stashes;
 	}
 
-	private static Item getItemFromBinaryString(String itemHex, byte[] itemArray) {
+	public static Item getItemFromBinaryString(String itemHex, byte[] itemArray) {
 		//String binaryString = getBinaryStringFromItemArray(itemArray);
 		String binaryString = getBinaryStringFromItemHex(itemHex);
 		Item item = new Item();
@@ -141,7 +141,82 @@ public class PlugyTools {
 			
 			//if not simple, get more item info
 			if (!isSimple) {
+				//start at offset 111
+				String itemId = binaryString.substring(111, 143);
 				
+				int itemLevel = getDecimalFromSubstring(binaryString, 143, 150);
+				
+				int itemQuality = getDecimalFromSubstring(binaryString, 150, 154);
+				
+				boolean hasMultiplePictures = getBooleanFromChar(binaryString, 154);
+				
+				int currentIndex = 154;
+				
+				if (hasMultiplePictures) {
+					//the next 3 bits are a picture ID
+					int pictureId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+4);
+					currentIndex += 3;
+				}
+				
+				//check the next bit for class specific
+				boolean isClassSpecific = getBooleanFromChar(binaryString, currentIndex);
+				
+				if (isClassSpecific) {
+					//next 11 bits are class specific data
+					
+					//what do I do with this?
+					
+					currentIndex += 11;
+				}
+				
+				switch (itemQuality) {
+				case 1:
+					//low quality
+					
+					//id is next 3 bits
+					int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+4);
+					currentIndex+=3;
+					break;
+				case 2:
+					//normal
+					break;
+				case 3:
+					//high quality
+					//no idea what to do here
+					currentIndex+=3;
+					break;
+				case 4:
+					//magical
+					int magicPrefixId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
+					
+					//get prefix name from id
+					
+					int magicSuffixId = getDecimalFromSubstring(binaryString, currentIndex+12, currentIndex+23);
+					
+					//get suffix name from id
+					currentIndex += 22;
+					break;
+				case 5:
+					//set
+					int setId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+13);
+					
+					//get set name from id
+					currentIndex += 12;
+					break;
+				case 6:
+				case 8:
+					//rare or crafted
+					break;
+					
+				case 7:
+					//unique
+					int uniqueId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
+					
+					//get unique name from id
+					currentIndex += 12;
+					
+					break;
+				}
 			}
 			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString);
 		}
