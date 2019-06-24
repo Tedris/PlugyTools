@@ -17,9 +17,16 @@ import domain.ComplexData;
 import domain.Constants;
 import domain.Item;
 import domain.Stash;
+import domain.UniqueItems;
 
 public class PlugyTools {
+	
+	private static UniqueItems uniqueItems;
+	
 	public static void main(String ... args) throws Exception {
+		//initialize files
+		uniqueItems = new UniqueItems();
+		
 		//do basic stuff, try to read from sss file
 		
 		Path fileLocation = Paths.get(args[0]);
@@ -174,6 +181,7 @@ public class PlugyTools {
 				
 				String itemQualityString = "";
 				int fileId = 0;
+				String itemName = "";
 				switch (itemQuality) {
 				case 1:
 					//low quality
@@ -226,12 +234,13 @@ public class PlugyTools {
 					fileId = uniqueId;
 					
 					//get unique name from id
+					itemName = uniqueItems.getUniqueItems().get(uniqueId).getIndex();
 					currentIndex += 12;
 					
 					break;
 				}
 				
-				complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId);
+				complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId, itemName);
 			}
 			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData);
 		}
