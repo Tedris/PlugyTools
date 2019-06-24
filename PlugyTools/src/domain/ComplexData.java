@@ -5,12 +5,14 @@ public class ComplexData {
 	private String itemId;
 	private int itemLevel;
 	private String itemQualityString;
+	private int fileId;
 
-	public ComplexData(String itemId, int itemLevel, String itemQualityString) {
+	public ComplexData(String itemId, int itemLevel, String itemQualityString, int fileId) {
 		super();
 		this.itemId = itemId;
 		this.itemLevel = itemLevel;
 		this.itemQualityString = itemQualityString;
+		this.fileId = fileId;
 	}
 
 	public ComplexData() {
@@ -39,5 +41,13 @@ public class ComplexData {
 
 	public void setItemQualityString(String itemQualityString) {
 		this.itemQualityString = itemQualityString;
+	}
+
+	public int getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(int fileId) {
+		this.fileId = fileId;
 	}
 }

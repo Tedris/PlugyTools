@@ -131,12 +131,12 @@ public class PlugyTools {
 			boolean isRuneword = getBooleanFromChar(binaryString, 42);
 			String location = getItemLocation(binaryString);
 			//getting decimal number requires another reverse
-			int colNum = getDecimalFromSubstring(binaryString, 65, 69);
-			int rowNum = getDecimalFromSubstring(binaryString, 69, 73);
-			char typeOne = (char)getDecimalFromSubstring(binaryString, 76, 84);
-			char typeTwo = (char)getDecimalFromSubstring(binaryString, 84, 92);
-			char typeThree = (char)getDecimalFromSubstring(binaryString, 92, 100);
-			char typeFour = (char)getDecimalFromSubstring(binaryString, 100, 108);
+			int colNum = getDecimalFromSubstring(binaryString, 65, 69, true);
+			int rowNum = getDecimalFromSubstring(binaryString, 69, 73, true);
+			char typeOne = (char)getDecimalFromSubstring(binaryString, 76, 84, true);
+			char typeTwo = (char)getDecimalFromSubstring(binaryString, 84, 92, true);
+			char typeThree = (char)getDecimalFromSubstring(binaryString, 92, 100, true);
+			char typeFour = (char)getDecimalFromSubstring(binaryString, 100, 108, true);
 			String itemType = "" + typeOne + typeTwo + typeThree + typeFour;
 			itemType = itemType.trim();
 			
@@ -146,22 +146,23 @@ public class PlugyTools {
 				//start at offset 111
 				String itemId = binaryString.substring(111, 143);
 				
-				int itemLevel = getDecimalFromSubstring(binaryString, 143, 150);
+				int itemLevel = getDecimalFromSubstring(binaryString, 143, 150, true);
 				
-				int itemQuality = getDecimalFromSubstring(binaryString, 150, 154);
+				int itemQuality = getDecimalFromSubstring(binaryString, 150, 154, true);
 				
 				boolean hasMultiplePictures = getBooleanFromChar(binaryString, 154);
 				
-				int currentIndex = 154;
+				int currentIndex = 155;
 				
 				if (hasMultiplePictures) {
 					//the next 3 bits are a picture ID
-					int pictureId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3);
+					int pictureId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3, true);
 					currentIndex += 3;
 				}
 				
 				//check the next bit for class specific
 				boolean isClassSpecific = getBooleanFromChar(binaryString, currentIndex);
+				currentIndex += 1;
 				
 				if (isClassSpecific) {
 					//next 11 bits are class specific data
@@ -172,12 +173,14 @@ public class PlugyTools {
 				}
 				
 				String itemQualityString = "";
+				int fileId = 0;
 				switch (itemQuality) {
 				case 1:
 					//low quality
 					itemQualityString = "LOW";
 					//id is next 3 bits
-					int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3);
+					int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3, false);
+					fileId = lowQualityId;
 					currentIndex+=3;
 					break;
 				case 2:
@@ -193,11 +196,11 @@ public class PlugyTools {
 				case 4:
 					//magical
 					itemQualityString = "MAGIC";
-					int magicPrefixId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+11);
+					int magicPrefixId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+11, true);
 					
 					//get prefix name from id
 					
-					int magicSuffixId = getDecimalFromSubstring(binaryString, currentIndex+11, currentIndex+22);
+					int magicSuffixId = getDecimalFromSubstring(binaryString, currentIndex+11, currentIndex+22, true);
 					
 					//get suffix name from id
 					currentIndex += 22;
@@ -205,7 +208,8 @@ public class PlugyTools {
 				case 5:
 					//set
 					itemQualityString = "SET";
-					int setId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
+					int setId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12, true);
+					fileId = setId;
 					
 					//get set name from id
 					currentIndex += 12;
@@ -218,7 +222,8 @@ public class PlugyTools {
 				case 7:
 					//unique
 					itemQualityString = "UNIQUE";
-					int uniqueId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12);
+					int uniqueId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+12, true);
+					fileId = uniqueId;
 					
 					//get unique name from id
 					currentIndex += 12;
@@ -226,7 +231,7 @@ public class PlugyTools {
 					break;
 				}
 				
-				complexData = new ComplexData(itemId, itemLevel, itemQualityString);
+				complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId);
 			}
 			item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData);
 		}
@@ -246,20 +251,23 @@ public class PlugyTools {
 		return JM + reversedBinaryString;
 	}
 
-	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex) {
+	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex, boolean reverse) {
 		String binarySubString = binaryString.substring(beginIndex, endIndex);
-		StringBuilder reverseSubString = new StringBuilder().append(binarySubString);
-		reverseSubString = reverseSubString.reverse();
-		int result = Integer.parseInt(reverseSubString.toString(), 2);
+		if (reverse) {
+			StringBuilder reverseSubString = new StringBuilder().append(binarySubString);
+			reverseSubString = reverseSubString.reverse();
+			binarySubString = reverseSubString.toString();
+		}
+		int result = Integer.parseInt(binarySubString, 2);
 		return result;
 	}
 
 	private static String getItemLocation(String binaryString) {
-		int locationValue = getDecimalFromSubstring(binaryString, 58, 61);
+		int locationValue = getDecimalFromSubstring(binaryString, 58, 61, true);
 		switch (locationValue) {
 		case 0:
 			//Found in Inventory, Cube, or Stash from bit 73
-			locationValue = getDecimalFromSubstring(binaryString, 73, 76);
+			locationValue = getDecimalFromSubstring(binaryString, 73, 76, true);
 			switch (locationValue) {
 			case 1:
 				return Constants.INVENTORY;
@@ -271,7 +279,7 @@ public class PlugyTools {
 			break;
 		case 1:
 			//Found on Body, get equip from bit 61
-			locationValue = getDecimalFromSubstring(binaryString, 61, 65);
+			locationValue = getDecimalFromSubstring(binaryString, 61, 65, true);
 			switch (locationValue) {
 			case 1:
 				return Constants.HELMET;
