@@ -7,4 +7,4 @@ mvn clean package
 # Running
 The jar is executable, you can run this program with:
 
-java -jar plugytools.jar "path\to\_LOD_SharedStashSave.sss"
+java -jar plugytools.jar "path\to\\_LOD_SharedStashSave.sss"
