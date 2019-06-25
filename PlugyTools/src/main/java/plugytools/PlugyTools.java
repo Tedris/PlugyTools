@@ -16,17 +16,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.ComplexData;
 import domain.Constants;
 import domain.Item;
+import domain.SetItems;
 import domain.Stash;
 import domain.UniqueItems;
 
 public class PlugyTools {
-	
-	private static UniqueItems uniqueItems;
-	
-	public static void main(String ... args) throws Exception {
-		//initialize files
-		uniqueItems = new UniqueItems();
 		
+	public static void main(String ... args) throws Exception {
 		//do basic stuff, try to read from sss file
 		
 		Path fileLocation = Paths.get(args[0]);
@@ -220,6 +216,7 @@ public class PlugyTools {
 					fileId = setId;
 					
 					//get set name from id
+					itemName = SetItems.getInstance().getSetItems().get(setId).getIndex();
 					currentIndex += 12;
 					break;
 				case 6:
@@ -234,7 +231,7 @@ public class PlugyTools {
 					fileId = uniqueId;
 					
 					//get unique name from id
-					itemName = uniqueItems.getUniqueItems().get(uniqueId).getIndex();
+					itemName = UniqueItems.getInstance().getUniqueItems().get(uniqueId).getIndex();
 					currentIndex += 12;
 					
 					break;

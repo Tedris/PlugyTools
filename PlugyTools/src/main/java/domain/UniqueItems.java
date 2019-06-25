@@ -11,16 +11,17 @@ import java.util.Scanner;
 public class UniqueItems {
 	
 	private List<UniqueItem> uniqueItems;
+	private static final UniqueItems instance = new UniqueItems();
 	
-	public UniqueItems() {
+	private UniqueItems() {
 		init();
 	}
 	
-	public void init() {
+	private void init() {
 		Path path = null;
 		
 		try {
-			path = Paths.get(getClass().getClassLoader().getResource("\\UniqueItems.txt").toURI());
+			path = Paths.get(getClass().getClassLoader().getResource("resources/UniqueItems.txt").toURI());
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -111,6 +112,10 @@ public class UniqueItems {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static UniqueItems getInstance() {
+		return instance;
 	}
 	
 	public List<UniqueItem> getUniqueItems() {
