@@ -123,7 +123,7 @@ Cow King's Hoofs	Cow King's Leathers	vbt	Heavy Boots	7	20	13								5	5000		ac		
 Naj's Puzzler	Naj's Ancient Set	6cs	Elder Staff	7	43	78								5	5000		enr		35	35	dmg%		150	150	charged	54	69	11	cast3		30	30	dmg-ltng		6	45	mana		70	70	allskills		1	1																																																	0
 Naj's Light Plate	Naj's Ancient Set	ult	Hellforge Plate	7	43	71								5	5000		ease		-60	-60	hp		65	65	res-all		25	25	dmg-to-mana		45	45	allskills		1	1	ac		300	300																																																					0
 Naj's Circlet	Naj's Ancient Set	ci0	Circlet	7	43	28								5	5000		ac		75	75	dmg-fire		25	35	Light		5	5	str		15	15	gethit-skill	53	12	5																																																									0
-McAuley's Paragon	McAuley's Folly	cap	Cap	3	20	25	lpur	lpur						5	5000		mag%		35	35	thorns		8	8	ac/lvl	8																																																																			0
-McAuley's Riprap	McAuley's Folly	vbt	Heavy Boots	7	20	20	lpur	lpur						5	5000		move3		40	40	att		100	100	str		5	5	dex		10	10																																																													0
-McAuley's Taboo	McAuley's Folly	vgl	Heavy Gloves	7	20	28	lpur	lpur						5	5000		ac		20	25	swing2		20	20	hp		40	40	dmg-pois	75	30	36																																																													0
-McAuley's Superstition	McAuley's Folly	bwn	Bone Wand	7	20	25	lpur	lpur						5	5000		dmg%	2	75	75	mana		25	25	manasteal		8	8	cast3		20	20	dmg-cold	50	25	75																																																									0
+Sander's Paragon	Sander's Folly	cap	Cap	3	20	25	lpur	lpur						5	5000		mag%		35	35	thorns		8	8	ac/lvl	8																																																																			0
+Sander's Riprap	Sander's Folly	vbt	Heavy Boots	7	20	20	lpur	lpur						5	5000		move3		40	40	att		100	100	str		5	5	dex		10	10																																																													0
+Sander's Taboo	Sander's Folly	vgl	Heavy Gloves	7	20	28	lpur	lpur						5	5000		ac		20	25	swing2		20	20	hp		40	40	dmg-pois	75	30	36																																																													0
+Sander's Superstition	Sander's Folly	bwn	Bone Wand	7	20	25	lpur	lpur						5	5000		dmg%	2	75	75	mana		25	25	manasteal		8	8	cast3		20	20	dmg-cold	50	25	75																																																									0

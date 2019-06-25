@@ -5,8 +5,10 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -16,8 +18,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import domain.ComplexData;
 import domain.Constants;
 import domain.Item;
+import domain.SetConstants;
 import domain.SetItems;
 import domain.Stash;
+import domain.UniqueConstants;
 import domain.UniqueItems;
 
 public class PlugyTools {
@@ -57,13 +61,68 @@ public class PlugyTools {
 			System.out.println("Number of stashes: " + nbStash);
 			
 			List<Stash> stashes = getStashesFromFile(data, nbStash, startStashIndex);
+			String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
 			
-			try (FileWriter file = new FileWriter("teststash.json" )) {
+			try (FileWriter file = new FileWriter("stashdebug-"+timestamp+".json" )) {
 				ObjectMapper mapper = new ObjectMapper();
 				mapper.writeValue(file, stashes);
 			}
 			
 			System.out.println("Stashes read from file: " + stashes.size());
+			
+			//Read from Holy Grail text files, write what you have, write what you need
+			try (FileWriter file = new FileWriter("holygrail-"+timestamp+".txt")) {
+				List<String> uniqueConstants = UniqueConstants.getInstance().getUniqueConstants();
+				List<String> setConstants = SetConstants.getInstance().getSetConstants();
+				
+				List<String> foundUniques = new ArrayList<>();
+				List<String> neededUniques = new ArrayList<>();
+				
+				List<String> foundSets = new ArrayList<>();
+				List<String> neededSets = new ArrayList<>();
+				
+				for (String uniqueConstant : uniqueConstants) {
+					if (isUniqueInStash(uniqueConstant, stashes)) {
+						foundUniques.add(uniqueConstant);
+					} else {
+						neededUniques.add(uniqueConstant);
+					}
+				}
+				
+				for (String setConstant : setConstants) {
+					if (isSetInStash(setConstant, stashes)) {
+						foundSets.add(setConstant);
+					} else {
+						neededSets.add(setConstant);
+					}
+				}
+				
+				file.write("Uniques you have: \n");
+				for (String foundUnique : foundUniques) {
+					file.write(foundUnique + "\n");
+				}
+				
+				file.write("\n");
+				
+				file.write("Uniques you need: \n");
+				for (String neededUnique : neededUniques) {
+					file.write(neededUnique + "\n");
+				}
+				
+				file.write("\n");
+				
+				file.write("Sets you have: \n");
+				for (String foundSet : foundSets) {
+					file.write(foundSet + "\n");
+				}
+				
+				file.write("\n");
+				
+				file.write("Uniques you have: \n");
+				for (String neededSet : neededSets) {
+					file.write(neededSet + "\n");
+				}
+			}
 		} else {
 			throw new Exception("File does not include SSS header!");
 		}
@@ -71,6 +130,28 @@ public class PlugyTools {
 		
 	}
 	
+	private static boolean isSetInStash(String setConstant, List<Stash> stashes) {
+		for (Stash stash : stashes) {
+			for (Item item : stash.getItems()) {
+				if (!item.isSimple() && item.getComplexData() != null && "SET".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && setConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean isUniqueInStash(String uniqueConstant, List<Stash> stashes) {
+		for (Stash stash : stashes) {
+			for (Item item : stash.getItems()) {
+				if (!item.isSimple() && item.getComplexData() != null && "UNIQUE".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && uniqueConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	private static List<Stash> getStashesFromFile(byte[] data, int nbStash, int startStashIndex) {
 		List<Stash> stashes = new ArrayList<>();
 		int currentIndex = startStashIndex;
