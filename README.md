@@ -17,26 +17,37 @@ plugytools.jar "path\to\\_LOD_SharedStashSave.sss"
 
 Uniques you have: 
 Twitchthroe
+
 Darkglow
+
 Hawkmail
+
 Iceblink
 
 etc...
 
-Uniques you need: 
+Uniques you need:
+ 
 Greyform
+
 Blinkbat's Form
+
 The Centurion
 
 etc...
 
-Sets you have: 
+Sets you have:
+ 
 Angelic Wings
+
 Angelic Halo
+
 Angelic Mantle
 
 etc...
 
 Sets you need: 
+
 Arcanna's Sign
+
 Arcanna's Deathwand
