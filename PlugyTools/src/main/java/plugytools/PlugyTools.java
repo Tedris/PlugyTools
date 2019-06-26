@@ -118,7 +118,7 @@ public class PlugyTools {
 				
 				file.write("\n");
 				
-				file.write("Uniques you have: \n");
+				file.write("Sets you need: \n");
 				for (String neededSet : neededSets) {
 					file.write(neededSet + "\n");
 				}

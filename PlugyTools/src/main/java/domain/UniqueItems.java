@@ -1,9 +1,6 @@
 package domain;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -18,15 +15,9 @@ public class UniqueItems {
 	}
 	
 	private void init() {
-		Path path = null;
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("UniqueItems.txt");
 		
-		try {
-			path = Paths.get(getClass().getClassLoader().getResource("resources/UniqueItems.txt").toURI());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try (Scanner scanner = new Scanner(path)) {
+		try (Scanner scanner = new Scanner(inputStream)) {
 			//skip first line
 			scanner.nextLine();
 			uniqueItems = new ArrayList<>();
@@ -108,9 +99,6 @@ public class UniqueItems {
 					uniqueItems.add(uniqueItem);
 				}
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

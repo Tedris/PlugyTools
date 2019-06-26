@@ -1,9 +1,6 @@
 package domain;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -18,15 +15,9 @@ public class SetConstants {
 	}
 	
 	private void init() {
-		Path path = null;
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("HolyGrailSets.txt");
 		
-		try {
-			path = Paths.get(getClass().getClassLoader().getResource("resources/HolyGrailSets.txt").toURI());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try (Scanner scanner = new Scanner(path)) {
+		try (Scanner scanner = new Scanner(inputStream)) {
 			setItems = new ArrayList<>();
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
@@ -35,9 +26,6 @@ public class SetConstants {
 					setItems.add(line);
 				}
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

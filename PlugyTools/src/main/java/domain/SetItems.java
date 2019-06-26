@@ -1,6 +1,7 @@
 package domain;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,16 +18,10 @@ public class SetItems {
 		init();
 	}
 	
-	private void init() {
-		Path path = null;
+	private void init() {		
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("SetItems.txt");
 		
-		try {
-			path = Paths.get(getClass().getClassLoader().getResource("resources/SetItems.txt").toURI());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try (Scanner scanner = new Scanner(path)) {
+		try (Scanner scanner = new Scanner(inputStream)) {
 			//skip first line
 			scanner.nextLine();
 			setItems = new ArrayList<>();
@@ -135,9 +130,6 @@ public class SetItems {
 					setItems.add(setItem);
 				}
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	

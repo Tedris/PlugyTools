@@ -1,9 +1,6 @@
 package domain;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -17,16 +14,10 @@ public class UniqueConstants {
 		init();
 	}
 	
-	private void init() {
-		Path path = null;
+	private void init() {		
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("HolyGrailUniques.txt");
 		
-		try {
-			path = Paths.get(getClass().getClassLoader().getResource("resources/HolyGrailUniques.txt").toURI());
-		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		try (Scanner scanner = new Scanner(path)) {
+		try (Scanner scanner = new Scanner(inputStream)) {
 			uniqueItems = new ArrayList<>();
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
@@ -35,9 +26,6 @@ public class UniqueConstants {
 					uniqueItems.add(line);
 				}
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
