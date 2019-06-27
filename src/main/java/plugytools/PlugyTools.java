@@ -1,6 +1,10 @@
 package plugytools;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
+import java.util.Scanner;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,7 +35,9 @@ public class PlugyTools {
 	public static void main(String ... args) throws Exception {
 		//do basic stuff, try to read from sss file
 		
-		Path fileLocation = Paths.get(args[0]);
+		String saveDirectory = getSaveDirectoryFromProperties();
+		
+		Path fileLocation = Paths.get(saveDirectory + "/_LOD_SharedStashSave.sss");
 		
 		byte[] data = Files.readAllBytes(fileLocation);
 		
@@ -130,6 +138,34 @@ public class PlugyTools {
 		
 	}
 	
+	private static String getSaveDirectoryFromProperties() {
+		try (FileInputStream in = new FileInputStream(System.getProperty("user.dir") + "\\plugytools.properties")) {
+			Properties properties = new Properties();
+			properties.load(in);
+			return properties.getProperty("saveDirectory");
+		} catch (FileNotFoundException fnf) {
+			//prompt to create save file property
+			System.out.println("Please enter the path to your save directory: ");
+			Scanner scanner = new Scanner(System.in);
+			String input = scanner.nextLine();
+			Properties properties = new Properties();
+			properties.setProperty("saveDirectory", input);
+			scanner.close();
+			
+			try (FileOutputStream fileOut = new FileOutputStream(System.getProperty("user.dir") + "\\plugytools.properties")) {
+				properties.store(fileOut, "Save Files Location");
+				return getSaveDirectoryFromProperties();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return null;
+	}
+
 	private static boolean isSetInStash(String setConstant, List<Stash> stashes) {
 		for (Stash stash : stashes) {
 			for (Item item : stash.getItems()) {
@@ -312,7 +348,11 @@ public class PlugyTools {
 					fileId = uniqueId;
 					
 					//get unique name from id
-					itemName = UniqueItems.getInstance().getUniqueItems().get(uniqueId).getIndex();
+					try {
+						itemName = UniqueItems.getInstance().getUniqueItems().get(uniqueId).getIndex();
+					} catch (IndexOutOfBoundsException idx) {
+						System.err.println("Wrong uniqueId parsed, no index found");
+					}
 					currentIndex += 12;
 					
 					break;
