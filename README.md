@@ -7,11 +7,18 @@ mvn clean package
 # Running
 The jar is executable, you can run this program with:
 
-java -jar plugytools.jar "path\to\\_LOD_SharedStashSave.sss"
+java -jar plugytools.jar
 
 Or with:
 
-plugytools.jar "path\to\\_LOD_SharedStashSave.sss"
+plugytools.jar
+
+Or with:
+
+plugytools.exe
+
+# Save Directory
+You can either enter your directory on first startup, or modify your plugytools.properties file in the same directory as the executable.
 
 # Sample Output
 
