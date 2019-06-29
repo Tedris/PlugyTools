@@ -1,27 +1,20 @@
 package domain;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Stash {
-	private List<Item> items;
+public class Stash extends Inventory {
 	private int height;
 	private int width;
+	private boolean shared;
 	
 	public Stash() {
-		items = new ArrayList<>();
+		super();
 	}
 	
 	public Stash(List<Item> items) {
-		this.items = items;
+		super(items);
 	}
 	
-	public List<Item> getItems() {
-		return items;
-	}
-	public void setItems(List<Item> items) {
-		this.items = items;
-	}
 	public int getHeight() {
 		return height;
 	}
@@ -33,5 +26,13 @@ public class Stash {
 	}
 	public void setWidth(int width) {
 		this.width = width;
+	}
+
+	public boolean isShared() {
+		return shared;
+	}
+
+	public void setShared(boolean shared) {
+		this.shared = shared;
 	}
 }
