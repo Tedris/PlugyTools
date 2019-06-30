@@ -180,12 +180,22 @@ public class PlugyTools {
 
 	private static PlayerCharacter getD2sItems(byte[] data) {
 		PlayerCharacter playerCharacter = new PlayerCharacter();
-		Inventory characterInventory = new Inventory();
+		Inventory characterInventory = parseInventoryFromData(data, 0);
+		Inventory corpseInventory = parseInventoryFromData(data, characterInventory.getEndIndex());
+		Inventory mercenaryInventory = parseInventoryFromData(data, corpseInventory.getEndIndex());
+		playerCharacter.setCharacterItems(characterInventory);
+		playerCharacter.setCorpseItems(corpseInventory);
+		playerCharacter.setMercenaryItems(mercenaryInventory);
+		return playerCharacter;
+	}
+	
+	private static Inventory parseInventoryFromData(byte[] data, int currentIndex) {
+		Inventory inventory = new Inventory();
 		//character data starts with a JM
-		int firstJMHeader = getStartIndexOfNextHeader(Constants.JM, data, 0);
+		int firstJMHeader = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
 		//number of items should only be needed once
 		int nbItem = data[firstJMHeader+2];
-		int currentIndex = firstJMHeader+2;
+		currentIndex = firstJMHeader+2;
 
 		System.out.println("Number of Items in character: " + nbItem);
 		for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
@@ -211,16 +221,10 @@ public class PlugyTools {
 			if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
 				nbItem += item.getNumOfItemsInSockets();
 			}
-			characterInventory.getItems().add(item);
+			inventory.getItems().add(item);
 		}
-		characterInventory.setEndIndex(currentIndex);
-		
-		Inventory corpseInventory = getCorpseItems(data, currentIndex);
-		Inventory mercenaryInventory = getMercenaryItems(data, corpseInventory.getEndIndex());
-		playerCharacter.setCharacterItems(characterInventory);
-		playerCharacter.setCorpseItems(corpseInventory);
-		playerCharacter.setMercenaryItems(mercenaryInventory);
-		return playerCharacter;
+		inventory.setEndIndex(currentIndex);
+		return inventory;
 	}
 
 	private static Inventory getCorpseItems(byte[] data, int currentIndex) {
