@@ -162,6 +162,9 @@ public class PlugyTools {
 					currentIndex = nextJmItemHeaderIndex;
 				}
 				Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
+				if (item.getLocation() == null) {
+					nbItem++;
+				}
 				mercenaryInventory.getItems().add(item);
 			}
 		} catch (ArrayIndexOutOfBoundsException ae) {
@@ -199,6 +202,9 @@ public class PlugyTools {
 				currentIndex = nextJmItemHeaderIndex;
 			}
 			Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
+			if (item.getLocation() == null) {
+				nbItem++;
+			}
 			characterInventory.getItems().add(item);
 		}
 		characterInventory.setEndIndex(currentIndex);
@@ -235,6 +241,9 @@ public class PlugyTools {
 				currentIndex = nextJmItemHeaderIndex;
 			}
 			Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
+			if (item.getLocation() == null) {
+				nbItem++;
+			}
 			corpseInventory.getItems().add(item);
 		}
 		corpseInventory.setEndIndex(currentIndex);
@@ -407,6 +416,9 @@ public class PlugyTools {
 					currentIndex = nextJmItemHeaderIndex;
 				}
 				Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
+				if (item.getLocation() == null) {
+					nbItem++;
+				}
 				stash.getItems().add(item);
 			}
 			stashes.add(stash);
