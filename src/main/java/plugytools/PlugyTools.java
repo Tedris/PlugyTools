@@ -124,7 +124,7 @@ public class PlugyTools {
 		return playerCharacters;
 	}
 
-	private static PlayerCharacter getCharacterData(File character) {
+	public static PlayerCharacter getCharacterData(File character) {
 		PlayerCharacter playerCharacter = new PlayerCharacter();
 		try {
 			byte[] data = Files.readAllBytes(character.toPath());
@@ -164,6 +164,9 @@ public class PlugyTools {
 				Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
 				if (item.getLocation() == null) {
 					nbItem++;
+				}
+				if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
+					nbItem += item.getNumOfItemsInSockets();
 				}
 				mercenaryInventory.getItems().add(item);
 			}
@@ -205,6 +208,9 @@ public class PlugyTools {
 			if (item.getLocation() == null) {
 				nbItem++;
 			}
+			if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
+				nbItem += item.getNumOfItemsInSockets();
+			}
 			characterInventory.getItems().add(item);
 		}
 		characterInventory.setEndIndex(currentIndex);
@@ -243,6 +249,9 @@ public class PlugyTools {
 			Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
 			if (item.getLocation() == null) {
 				nbItem++;
+			}
+			if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
+				nbItem += item.getNumOfItemsInSockets();
 			}
 			corpseInventory.getItems().add(item);
 		}
@@ -419,6 +428,10 @@ public class PlugyTools {
 				if (item.getLocation() == null) {
 					nbItem++;
 				}
+				
+				if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
+					nbItem += item.getNumOfItemsInSockets();
+				}
 				stash.getItems().add(item);
 			}
 			stashes.add(stash);
@@ -456,6 +469,12 @@ public class PlugyTools {
 				char typeFour = (char)getDecimalFromSubstring(binaryString, 100, 108, true);
 				String itemType = "" + typeOne + typeTwo + typeThree + typeFour;
 				itemType = itemType.trim();
+				
+				int numOfItemsInSockets = 0;
+				if (isSocketed) {
+					//get number of sockets
+					numOfItemsInSockets = getDecimalFromSubstring(binaryString, 108, 111, true);
+				}
 				
 				ComplexData complexData = new ComplexData();
 				//if not simple, get more item info
@@ -555,9 +574,13 @@ public class PlugyTools {
 						break;
 					}
 					
+					if (isRuneword) {
+						
+					}
+					
 					complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId, itemName);
 				}
-				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex);
+				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex, numOfItemsInSockets);
 			}
 		} catch (StringIndexOutOfBoundsException sIdx) {
 			System.err.println("Error parsing item: " + itemHex);
