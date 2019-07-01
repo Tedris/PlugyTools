@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import domain.ComplexData;
@@ -31,6 +29,7 @@ import domain.PlayerCharacter;
 import domain.SetConstants;
 import domain.SetItems;
 import domain.Stash;
+import domain.StashCollection;
 import domain.UniqueConstants;
 import domain.UniqueItems;
 
@@ -42,7 +41,7 @@ public class PlugyTools {
 		String saveDirectory = getSaveDirectoryFromProperties();
 		
 		Library library = new Library();
-		List<Stash> stashes = getStashesFromFile(saveDirectory);
+		List<StashCollection> stashes = getStashesFromDirectory(saveDirectory);
 		List<PlayerCharacter> playerCharacters = getCharactersFromDirectory(saveDirectory);
 		library.setStashes(stashes);
 		library.setPlayerCharacters(playerCharacters);
@@ -110,6 +109,27 @@ public class PlugyTools {
 			}
 		}	
 	}
+	
+	private static List<StashCollection> getStashesFromDirectory(String saveDirectory) {
+		List<StashCollection> stashCollections = new ArrayList<>();
+		StashCollection sharedStashCollection = new StashCollection();
+		List<Stash> sharedStash = getStashesFromFile(saveDirectory + "/_LOD_SharedStashSave.sss");
+		sharedStashCollection.setStashes(sharedStash);
+		sharedStashCollection.setFileName("_LOD_SharedStashSave.sss");
+		stashCollections.add(sharedStashCollection);
+		File directory = new File(saveDirectory);
+		File[] files = directory.listFiles((d, name) -> name.endsWith(".d2x"));
+		for (File stash : files) {
+			System.out.println("Parsing " + stash.getName());
+			List<Stash> personalStash = getStashesFromFile(stash.getAbsolutePath());
+			StashCollection personalStashCollection = new StashCollection();
+			personalStashCollection.setStashes(personalStash);
+			personalStashCollection.setFileName(stash.getName());
+			stashCollections.add(personalStashCollection);
+		}
+		
+		return stashCollections;
+	}
 
 	private static List<PlayerCharacter> getCharactersFromDirectory(String saveDirectory) {
 		List<PlayerCharacter> playerCharacters = new ArrayList<>();
@@ -136,60 +156,18 @@ public class PlugyTools {
 		return playerCharacter;
 	}
 
-	private static Inventory getMercenaryItems(byte[] data, int currentIndex) {
-		Inventory mercenaryInventory = new Inventory();
-		//character data starts with the first JM after jf
-		int firstJMHeader = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
-		//number of items should only be needed once
-		int nbItem = data[firstJMHeader+2];
-		currentIndex = firstJMHeader+2;
-		System.out.println("Number of Items in mercenary: " + nbItem);
-		try {
-			for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
-				int currentJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
-				String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
-				System.out.println("Current JM Item Header Index: " + currentJmItemHeaderIndex + "; Hex: " + hexIndex);
-				int nextJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentJmItemHeaderIndex + 2);
-				String itemHex = "";
-				byte[] itemArray;
-				if (nextJmItemHeaderIndex == -1) {
-					//End of File!
-					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, data.length);
-					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, data.length-1);
-				} else {
-					itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
-					itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
-					currentIndex = nextJmItemHeaderIndex;
-				}
-				Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
-				if (item.getLocation() == null) {
-					nbItem++;
-				}
-				if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
-					nbItem += item.getNumOfItemsInSockets();
-				}
-				mercenaryInventory.getItems().add(item);
-			}
-		} catch (ArrayIndexOutOfBoundsException ae) {
-			System.err.println("Error parsing Mercenary items, went out of bounds.");
-		}
-		mercenaryInventory.setEndIndex(currentIndex);
-		
-		return mercenaryInventory;
-	}
-
 	private static PlayerCharacter getD2sItems(byte[] data) {
 		PlayerCharacter playerCharacter = new PlayerCharacter();
-		Inventory characterInventory = parseInventoryFromData(data, 0);
-		Inventory corpseInventory = parseInventoryFromData(data, characterInventory.getEndIndex());
-		Inventory mercenaryInventory = parseInventoryFromData(data, corpseInventory.getEndIndex());
+		Inventory characterInventory = parseInventoryFromData(data, 0, "character");
+		Inventory corpseInventory = parseInventoryFromData(data, characterInventory.getEndIndex(), "corpse");
+		Inventory mercenaryInventory = parseInventoryFromData(data, corpseInventory.getEndIndex(), "mercenary");
 		playerCharacter.setCharacterItems(characterInventory);
 		playerCharacter.setCorpseItems(corpseInventory);
 		playerCharacter.setMercenaryItems(mercenaryInventory);
 		return playerCharacter;
 	}
 	
-	private static Inventory parseInventoryFromData(byte[] data, int currentIndex) {
+	private static Inventory parseInventoryFromData(byte[] data, int currentIndex, String inventoryType) {
 		Inventory inventory = new Inventory();
 		//character data starts with a JM
 		int firstJMHeader = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
@@ -197,7 +175,7 @@ public class PlugyTools {
 		int nbItem = data[firstJMHeader+2];
 		currentIndex = firstJMHeader+2;
 
-		System.out.println("Number of Items in character: " + nbItem);
+		System.out.println("Number of Items in " + inventoryType + ": " + nbItem);
 		for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
 			int currentJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
 			String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
@@ -227,71 +205,43 @@ public class PlugyTools {
 		return inventory;
 	}
 
-	private static Inventory getCorpseItems(byte[] data, int currentIndex) {
-		Inventory corpseInventory = new Inventory();
-		int firstJMHeader = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
-		//number of items should only be needed once
-		int nbItem = data[firstJMHeader+2];
-		currentIndex = firstJMHeader+2;
-		System.out.println("Number of Items in corpse: " + nbItem);
-		for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
-			int currentJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
-			String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
-			System.out.println("Current JM Item Header Index: " + currentJmItemHeaderIndex + "; Hex: " + hexIndex);
-			int nextJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentJmItemHeaderIndex + 2);
-			String itemHex = "";
-			byte[] itemArray;
-			if (nextJmItemHeaderIndex == -1) {
-				//End of File!
-				itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, data.length);
-				itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, data.length-1);
-			} else {
-				itemHex = getHexStringFromRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
-				itemArray = Arrays.copyOfRange(data, currentJmItemHeaderIndex, nextJmItemHeaderIndex);
-				currentIndex = nextJmItemHeaderIndex;
-			}
-			Item item = getItemFromBinaryString(itemHex, itemArray, hexIndex);
-			if (item.getLocation() == null) {
-				nbItem++;
-			}
-			if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
-				nbItem += item.getNumOfItemsInSockets();
-			}
-			corpseInventory.getItems().add(item);
-		}
-		corpseInventory.setEndIndex(currentIndex);
-
-		return corpseInventory;
-	}
-
-	private static List<Stash> getStashesFromFile(String saveDirectory) {
-		Path fileLocation = Paths.get(saveDirectory + "/_LOD_SharedStashSave.sss");
+	private static List<Stash> getStashesFromFile(String filePath) {
+		Path fileLocation = Paths.get(filePath);
 		
 		byte[] data = null;
 		try {
 			data = Files.readAllBytes(fileLocation);
-			//check for valid SSS file:
+			if (filePath.contains(".sss")) {
+				//check for valid SSS file:
+				
+				String SSS = getHexStringFromRange(data, 0, 3);
+				int nbStash = 0;
+				int sharedGoldAmount = 0;
+				int startStashIndex = 0;
 			
-			String SSS = getHexStringFromRange(data, 0, 3);
-			int nbStash = 0;
-			int sharedGoldAmount = 0;
-			int startStashIndex = 0;
-		
-			if (SSS.equalsIgnoreCase("535353")) {
-				String fileVersion = getHexStringFromRange(data, 4, 6);
-				if (fileVersion.equalsIgnoreCase("3031")) {
-					//file is version 01, no shared gold
-					nbStash = data[6];
-					startStashIndex = 10;
-				} else if (fileVersion.equalsIgnoreCase("3032")) {
-					//file is version 02, has shared gold
-					sharedGoldAmount = data[6];
+				if (SSS.equalsIgnoreCase("535353")) {
+					String fileVersion = getHexStringFromRange(data, 4, 6);
+					if (fileVersion.equalsIgnoreCase("3031")) {
+						//file is version 01, no shared gold
+						nbStash = data[6];
+						startStashIndex = 10;
+					} else if (fileVersion.equalsIgnoreCase("3032")) {
+						//file is version 02, has shared gold
+						sharedGoldAmount = data[6];
+						
+						System.out.println("Shared Gold Amount: " + sharedGoldAmount);
+						
+						nbStash = data[10];
+						startStashIndex = 14;
+					}
+					System.out.println("Number of stashes: " + nbStash);
 					
-					System.out.println("Shared Gold Amount: " + sharedGoldAmount);
-					
-					nbStash = data[10];
-					startStashIndex = 14;
+					return getStashesFromData(data, nbStash, startStashIndex);
 				}
+			} else if (filePath.contains(".d2x")) {
+				int nbStash = data[10];
+				int startStashIndex = 14;
+				
 				System.out.println("Number of stashes: " + nbStash);
 				
 				return getStashesFromData(data, nbStash, startStashIndex);
@@ -335,11 +285,13 @@ public class PlugyTools {
 		return null;
 	}
 
-	private static boolean isSetInStash(String setConstant, List<Stash> stashes) {
-		for (Stash stash : stashes) {
-			for (Item item : stash.getItems()) {
-				if (!item.isSimple() && item.getComplexData() != null && "SET".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && setConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
-					return true;
+	private static boolean isSetInStash(String setConstant, List<StashCollection> stashCollections) {
+		for (StashCollection stashCollection : stashCollections) {
+			for (Stash stash : stashCollection.getStashes()) {
+				for (Item item : stash.getItems()) {
+					if (!item.isSimple() && item.getComplexData() != null && "SET".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && setConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+						return true;
+					}
 				}
 			}
 		}
@@ -382,11 +334,13 @@ public class PlugyTools {
 		return false;
 	}
 
-	private static boolean isUniqueInStash(String uniqueConstant, List<Stash> stashes) {
-		for (Stash stash : stashes) {
-			for (Item item : stash.getItems()) {
-				if (!item.isSimple() && item.getComplexData() != null && "UNIQUE".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && uniqueConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
-					return true;
+	private static boolean isUniqueInStash(String uniqueConstant, List<StashCollection> stashCollections) {
+		for (StashCollection stashCollection : stashCollections) {
+			for (Stash stash : stashCollection.getStashes()) {
+				for (Item item : stash.getItems()) {
+					if (!item.isSimple() && item.getComplexData() != null && "UNIQUE".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && uniqueConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+						return true;
+					}
 				}
 			}
 		}
@@ -402,6 +356,11 @@ public class PlugyTools {
 			int stIndex = getStartIndexOfNextHeader(Constants.ST, data, currentIndex);
 			int nextStIndex = getStartIndexOfNextHeader(Constants.ST, data, stIndex+2);
 			System.out.println("ST index: " + stIndex);
+			System.out.println("Next ST Index: " + nextStIndex);
+			if (stIndex == -1) {
+				System.err.println("ST index was not found, setting nbStash to 1");
+				nbStash = 1;
+			}
 			int jmHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, stIndex);
 			System.out.println("JM header index: " + jmHeaderIndex);
 			int nbItem = data[jmHeaderIndex+2];
@@ -675,21 +634,12 @@ public class PlugyTools {
 		return ((charFromBinaryString == '0') ? false : true);
 	}
 
-	private static String getBinaryStringFromItemArray(byte[] itemArray) {
-		String binaryString = "";
-		for (byte b : itemArray) {
-			String binaryStringFromByte = Integer.toBinaryString(b);
-			if (binaryStringFromByte.length() < 8) {
-				binaryStringFromByte = StringUtils.leftPad(binaryStringFromByte, 8, '0');
-			}
-			binaryString += binaryStringFromByte;
-		}
-		return binaryString;
-	}
-
 	private static int getStartIndexOfNextHeader(String header, byte[] data, int startingIndex) {
 		boolean found = false;
 		int index = startingIndex;
+		if (index == -1) {
+			index = 0;
+		}
 		while (!found) {
 			if (index + 2 > data.length) {
 				return -1;

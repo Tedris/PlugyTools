@@ -5,7 +5,7 @@ Twitchthroe
 Darkglow
 Hawkmail
 Venom Ward
-Sparkling Mail
+Sparking Mail
 Iceblink
 Heavenly Garb
 Rockfleece
@@ -66,7 +66,7 @@ Shadowdancer
 
 The Hand of Broc
 Bloodfist
-Chance Gaurds
+Chance Guards
 Magefist
 Frostburn
 Venom Grip

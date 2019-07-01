@@ -3,13 +3,13 @@ package domain;
 import java.util.List;
 
 public class Library {
-	private List<Stash> stashes;
+	private List<StashCollection> stashCollections;
 	private List<PlayerCharacter> playerCharacters;
-	public List<Stash> getStashes() {
-		return stashes;
+	public List<StashCollection> getStashes() {
+		return stashCollections;
 	}
-	public void setStashes(List<Stash> stashes) {
-		this.stashes = stashes;
+	public void setStashes(List<StashCollection> stashCollections) {
+		this.stashCollections = stashCollections;
 	}
 	public List<PlayerCharacter> getPlayerCharacters() {
 		return playerCharacters;
