@@ -1,71 +1,64 @@
 package plugytools;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import domain.*;
+
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
-import java.util.Scanner;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import domain.ComplexData;
-import domain.Constants;
-import domain.Inventory;
-import domain.Item;
-import domain.Library;
-import domain.PlayerCharacter;
-import domain.SetConstants;
-import domain.SetItems;
-import domain.Stash;
-import domain.StashCollection;
-import domain.UniqueConstants;
-import domain.UniqueItems;
+import java.util.*;
 
 public class PlugyTools {
 		
-	public static void main(String ... args) throws Exception {
+	public static void main(String ... args) throws IOException {
 		//do basic stuff, try to read from sss file
 		
 		String saveDirectory = getSaveDirectoryFromProperties();
-		
+		System.out.println("Save Directory: " + saveDirectory);
+		System.out.println("1. Scan Save Directory");
+		System.out.println("2. Change Save Directory");
+
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.nextLine();
+		if (input != null && input.contains("1")) {
+			scanSaveDirectory(saveDirectory);
+		}
+
+		if (input != null && input.contains("2")) {
+			createSaveProperties();
+		}
+	}
+
+	private static void scanSaveDirectory(String saveDirectory) throws IOException {
 		Library library = new Library();
 		List<StashCollection> stashes = getStashesFromDirectory(saveDirectory);
 		List<PlayerCharacter> playerCharacters = getCharactersFromDirectory(saveDirectory);
 		library.setStashes(stashes);
 		library.setPlayerCharacters(playerCharacters);
-		
+
 		String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
-		
+
 		try (FileWriter file = new FileWriter("stashdebug-"+timestamp+".json" )) {
 			ObjectMapper mapper = new ObjectMapper();
 			mapper.writeValue(file, library);
 		}
-		
+
 		System.out.println("Stashes read from file: " + stashes.size());
-		
+
 		//Read from Holy Grail text files, write what you have, write what you need
 		try (FileWriter file = new FileWriter("holygrail-"+timestamp+".txt")) {
 			List<String> uniqueConstants = UniqueConstants.getInstance().getUniqueConstants();
 			List<String> setConstants = SetConstants.getInstance().getSetConstants();
-			
+
 			List<String> foundUniques = new ArrayList<>();
 			List<String> neededUniques = new ArrayList<>();
-			
+
 			List<String> foundSets = new ArrayList<>();
 			List<String> neededSets = new ArrayList<>();
-			
+
 			for (String uniqueConstant : uniqueConstants) {
 				if (isUniqueInLibrary(uniqueConstant, library)) {
 					foundUniques.add(uniqueConstant);
@@ -73,7 +66,7 @@ public class PlugyTools {
 					neededUniques.add(uniqueConstant);
 				}
 			}
-			
+
 			for (String setConstant : setConstants) {
 				if (isSetInStash(setConstant, stashes)) {
 					foundSets.add(setConstant);
@@ -81,33 +74,33 @@ public class PlugyTools {
 					neededSets.add(setConstant);
 				}
 			}
-			
+
 			file.write("Uniques you have: \n");
 			for (String foundUnique : foundUniques) {
 				file.write(foundUnique + "\n");
 			}
-			
+
 			file.write("\n");
-			
+
 			file.write("Uniques you need: \n");
 			for (String neededUnique : neededUniques) {
 				file.write(neededUnique + "\n");
 			}
-			
+
 			file.write("\n");
-			
+
 			file.write("Sets you have: \n");
 			for (String foundSet : foundSets) {
 				file.write(foundSet + "\n");
 			}
-			
+
 			file.write("\n");
-			
+
 			file.write("Sets you need: \n");
 			for (String neededSet : neededSets) {
 				file.write(neededSet + "\n");
 			}
-		}	
+		}
 	}
 	
 	private static List<StashCollection> getStashesFromDirectory(String saveDirectory) {
@@ -119,14 +112,16 @@ public class PlugyTools {
 		stashCollections.add(sharedStashCollection);
 		File directory = new File(saveDirectory);
 		File[] files = directory.listFiles((d, name) -> name.endsWith(".d2x"));
-		for (File stash : files) {
-			System.out.println("Parsing " + stash.getName());
-			List<Stash> personalStash = getStashesFromFile(stash.getAbsolutePath());
-			StashCollection personalStashCollection = new StashCollection();
-			personalStashCollection.setStashes(personalStash);
-			personalStashCollection.setFileName(stash.getName());
-			stashCollections.add(personalStashCollection);
-		}
+		if (files != null) {
+            for (File stash : files) {
+                System.out.println("Parsing " + stash.getName());
+                List<Stash> personalStash = getStashesFromFile(stash.getAbsolutePath());
+                StashCollection personalStashCollection = new StashCollection();
+                personalStashCollection.setStashes(personalStash);
+                personalStashCollection.setFileName(stash.getName());
+                stashCollections.add(personalStashCollection);
+            }
+        }
 		
 		return stashCollections;
 	}
@@ -135,11 +130,13 @@ public class PlugyTools {
 		List<PlayerCharacter> playerCharacters = new ArrayList<>();
 		File directory = new File(saveDirectory);
 		File[] files = directory.listFiles((d, name) -> name.endsWith(".d2s"));
-		for (File character : files) {
-			System.out.println("Parsing " + character.getName());
-			PlayerCharacter playerCharacter = getCharacterData(character);
-			playerCharacter.setFileName(character.getName());
-			playerCharacters.add(playerCharacter);
+		if (files != null) {
+			for (File character : files) {
+				System.out.println("Parsing " + character.getName());
+				PlayerCharacter playerCharacter = getCharacterData(character);
+				playerCharacter.setFileName(character.getName());
+				playerCharacters.add(playerCharacter);
+			}
 		}
 		return playerCharacters;
 	}
@@ -181,7 +178,7 @@ public class PlugyTools {
 			String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
 			System.out.println("Current JM Item Header Index: " + currentJmItemHeaderIndex + "; Hex: " + hexIndex);
 			int nextJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentJmItemHeaderIndex + 2);
-			String itemHex = "";
+			String itemHex;
 			byte[] itemArray;
 			if (nextJmItemHeaderIndex == -1) {
 				//End of File!
@@ -208,17 +205,15 @@ public class PlugyTools {
 	private static List<Stash> getStashesFromFile(String filePath) {
 		Path fileLocation = Paths.get(filePath);
 		
-		byte[] data = null;
 		try {
-			data = Files.readAllBytes(fileLocation);
+			byte[] data = Files.readAllBytes(fileLocation);
 			if (filePath.contains(".sss")) {
 				//check for valid SSS file:
 				
 				String SSS = getHexStringFromRange(data, 0, 3);
 				int nbStash = 0;
-				int sharedGoldAmount = 0;
 				int startStashIndex = 0;
-			
+
 				if (SSS.equalsIgnoreCase("535353")) {
 					String fileVersion = getHexStringFromRange(data, 4, 6);
 					if (fileVersion.equalsIgnoreCase("3031")) {
@@ -227,8 +222,8 @@ public class PlugyTools {
 						startStashIndex = 10;
 					} else if (fileVersion.equalsIgnoreCase("3032")) {
 						//file is version 02, has shared gold
-						sharedGoldAmount = data[6];
-						
+						int sharedGoldAmount = data[6];
+
 						System.out.println("Shared Gold Amount: " + sharedGoldAmount);
 						
 						nbStash = data[10];
@@ -246,14 +241,11 @@ public class PlugyTools {
 				
 				return getStashesFromData(data, nbStash, startStashIndex);
 			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 	
@@ -264,24 +256,28 @@ public class PlugyTools {
 			return properties.getProperty("saveDirectory");
 		} catch (FileNotFoundException fnf) {
 			//prompt to create save file property
-			System.out.println("Please enter the path to your save directory: ");
-			Scanner scanner = new Scanner(System.in);
-			String input = scanner.nextLine();
-			Properties properties = new Properties();
-			properties.setProperty("saveDirectory", input);
-			scanner.close();
-			
-			try (FileOutputStream fileOut = new FileOutputStream(System.getProperty("user.dir") + "\\plugytools.properties")) {
-				properties.store(fileOut, "Save Files Location");
-				return getSaveDirectoryFromProperties();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			return createSaveProperties();
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
+		return null;
+	}
+
+	private static String createSaveProperties() {
+		System.out.println("Please enter the path to your save directory: ");
+		Scanner scanner = new Scanner(System.in);
+		String input = scanner.nextLine();
+		Properties properties = new Properties();
+		properties.setProperty("saveDirectory", input);
+		scanner.close();
+
+		try (FileOutputStream fileOut = new FileOutputStream(System.getProperty("user.dir") + "\\plugytools.properties")) {
+			properties.store(fileOut, "Save Files Location");
+			return getSaveDirectoryFromProperties();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		return null;
 	}
 
@@ -371,7 +367,7 @@ public class PlugyTools {
 				String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
 				System.out.println("Current JM Item Header Index: " + currentJmItemHeaderIndex + "; Hex: " + hexIndex);
 				int nextJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentJmItemHeaderIndex + 2);
-				String itemHex = "";
+				String itemHex;
 				byte[] itemArray;
 				if (nextJmItemHeaderIndex == -1) {
 					//End of File!
@@ -407,7 +403,7 @@ public class PlugyTools {
 		String binaryString = getBinaryStringFromItemHex(itemHex);
 		Item item = new Item();
 		try {
-			if (binaryString != null && !binaryString.isEmpty()) {
+			if (!binaryString.isEmpty()) {
 				//Identified, offset 20
 				boolean isIdentified = getBooleanFromChar(binaryString, 20);
 				//Socketed, offset 27
@@ -479,8 +475,7 @@ public class PlugyTools {
 						//low quality
 						itemQualityString = "LOW";
 						//id is next 3 bits
-						int lowQualityId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3, false);
-						fileId = lowQualityId;
+						fileId = getDecimalFromSubstring(binaryString, currentIndex, currentIndex+3, false);
 						currentIndex+=3;
 						break;
 					case 2:
@@ -554,14 +549,14 @@ public class PlugyTools {
 
 	private static String getBinaryStringFromItemHex(String itemHex) {
 		String binaryString = "0" + new BigInteger(itemHex, 16).toString(2);
-		String reversedBinaryString = "";
+		StringBuilder reversedBinaryString = new StringBuilder();
 		for (int i = 16; i < binaryString.length(); i+=8) {
 			StringBuilder innerStringBuilder = new StringBuilder().append(binaryString.substring(i, i+8));
 			innerStringBuilder = innerStringBuilder.reverse();
-			reversedBinaryString += innerStringBuilder.toString();
+			reversedBinaryString.append(innerStringBuilder);
 		}
 		String JM = binaryString.substring(0, 16);
-		return JM + reversedBinaryString;
+		return JM + reversedBinaryString.toString();
 	}
 
 	private static int getDecimalFromSubstring(String binaryString, int beginIndex, int endIndex, boolean reverse) {
