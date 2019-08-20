@@ -102,7 +102,7 @@ public class PlugyTools {
 			}
 		}
 	}
-	
+
 	private static List<StashCollection> getStashesFromDirectory(String saveDirectory) {
 		List<StashCollection> stashCollections = new ArrayList<>();
 		StashCollection sharedStashCollection = new StashCollection();
@@ -218,15 +218,15 @@ public class PlugyTools {
 					String fileVersion = getHexStringFromRange(data, 4, 6);
 					if (fileVersion.equalsIgnoreCase("3031")) {
 						//file is version 01, no shared gold
-						nbStash = data[6];
+						nbStash = Integer.parseInt(reverseHex(getHexStringFromRange(data, 6, 10)), 16);
 						startStashIndex = 10;
 					} else if (fileVersion.equalsIgnoreCase("3032")) {
 						//file is version 02, has shared gold
 						int sharedGoldAmount = data[6];
 
 						System.out.println("Shared Gold Amount: " + sharedGoldAmount);
-						
-						nbStash = data[10];
+
+						nbStash = Integer.parseInt(reverseHex(getHexStringFromRange(data, 10, 14)), 16);
 						startStashIndex = 14;
 					}
 					System.out.println("Number of stashes: " + nbStash);
@@ -234,7 +234,7 @@ public class PlugyTools {
 					return getStashesFromData(data, nbStash, startStashIndex);
 				}
 			} else if (filePath.contains(".d2x")) {
-				int nbStash = data[10];
+				int nbStash = Integer.parseInt(reverseHex(getHexStringFromRange(data, 10, 14)), 16);
 				int startStashIndex = 14;
 				
 				System.out.println("Number of stashes: " + nbStash);
@@ -248,7 +248,20 @@ public class PlugyTools {
 
 		return null;
 	}
-	
+
+	private static String reverseHex(String hex) {
+		if (hex.length() % 2 != 0) {
+			System.err.println("Hex strings to be reversed should always be of even length");
+			return null; // TODO
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < hex.length(); i += 2) {
+			int start = hex.length() - i;
+			sb.append(hex.substring(start - 2, start));
+		}
+		return sb.toString();
+	}
+
 	private static String getSaveDirectoryFromProperties() {
 		try (FileInputStream in = new FileInputStream(System.getProperty("user.dir") + "\\plugytools.properties")) {
 			Properties properties = new Properties();
@@ -298,13 +311,13 @@ public class PlugyTools {
 		if (isUniqueInStash(uniqueConstant, library.getStashes())) {
 			return true;
 		}
-		
+
 		for (PlayerCharacter playerCharacter : library.getPlayerCharacters()) {
 			if (isUniqueInPlayerCharacter(uniqueConstant, playerCharacter)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 	

@@ -15,15 +15,16 @@ public class SetConstants {
 	}
 	
 	private void init() {
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("HolyGrailSets.txt");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("SetItems.txt");
 		
 		try (Scanner scanner = new Scanner(inputStream)) {
 			setItems = new ArrayList<>();
+			scanner.nextLine(); // Skip first item
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				
-				if (line != null && !line.isEmpty()) {
-					setItems.add(line);
+				if (line != null && !line.trim().isEmpty()) {
+					setItems.add(line.split("\t")[0]);
 				}
 			}
 		}
