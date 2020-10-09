@@ -15,15 +15,16 @@ public class UniqueConstants {
 	}
 	
 	private void init() {		
-		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("HolyGrailUniques.txt");
+		InputStream inputStream = getClass().getClassLoader().getResourceAsStream("UniqueItems.txt");
 		
 		try (Scanner scanner = new Scanner(inputStream)) {
 			uniqueItems = new ArrayList<>();
+			scanner.nextLine(); // Skip first line
 			while (scanner.hasNextLine()) {
 				String line = scanner.nextLine();
 				
-				if (line != null && !line.isEmpty()) {
-					uniqueItems.add(line);
+				if (line != null && !line.trim().isEmpty()) {
+					uniqueItems.add(line.split("\t")[0]);
 				}
 			}
 		}
