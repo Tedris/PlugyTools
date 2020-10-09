@@ -296,10 +296,13 @@ public class PlugyTools {
 
 	private static boolean isSetInStash(String setConstant, List<StashCollection> stashCollections) {
 		for (StashCollection stashCollection : stashCollections) {
-			for (Stash stash : stashCollection.getStashes()) {
-				for (Item item : stash.getItems()) {
-					if (!item.isSimple() && item.getComplexData() != null && "SET".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && setConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
-						return true;
+			List<Stash> stashes = stashCollection.getStashes();
+			if (stashes != null) {
+				for (Stash stash : stashes) {
+					for (Item item : stash.getItems()) {
+						if (!item.isSimple() && item.getComplexData() != null && "SET".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && setConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+							return true;
+						}
 					}
 				}
 			}
@@ -345,10 +348,13 @@ public class PlugyTools {
 
 	private static boolean isUniqueInStash(String uniqueConstant, List<StashCollection> stashCollections) {
 		for (StashCollection stashCollection : stashCollections) {
-			for (Stash stash : stashCollection.getStashes()) {
-				for (Item item : stash.getItems()) {
-					if (!item.isSimple() && item.getComplexData() != null && "UNIQUE".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && uniqueConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
-						return true;
+			List<Stash> stashes = stashCollection.getStashes();
+			if (stashes != null) {
+				for (Stash stash : stashes) {
+					for (Item item : stash.getItems()) {
+						if (!item.isSimple() && item.getComplexData() != null && "UNIQUE".equalsIgnoreCase(item.getComplexData().getItemQualityString()) && uniqueConstant.equalsIgnoreCase(item.getComplexData().getItemName())) {
+							return true;
+						}
 					}
 				}
 			}
