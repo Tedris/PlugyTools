@@ -1,5 +1,7 @@
 package domain;
 
+import java.util.List;
+
 public class Item {
 	private String hexString;
 	private byte[] itemArray;
@@ -18,6 +20,7 @@ public class Item {
 	private ComplexData complexData;
 	private String hexIndex;
 	private int numOfItemsInSockets;
+	private List<Item> socketedItems;
 	
 	public Item() {
 		
@@ -26,7 +29,7 @@ public class Item {
 	public Item(String hexString, byte[] itemArray, boolean isIdentified, boolean isSocketed, boolean isEar,
 			boolean isSimple, boolean isEthereal, boolean isPersonalized, boolean isRuneword, String location,
 			int colNum, int rowNum, String itemType, String binaryString, ComplexData complexData, String hexIndex,
-			int numOfItemsInSockets) {
+			int numOfItemsInSockets, List<Item> socketedItems) {
 		super();
 		this.hexString = hexString;
 		this.itemArray = itemArray;
@@ -45,6 +48,7 @@ public class Item {
 		this.setComplexData(complexData);
 		this.hexIndex = hexIndex;
 		this.setNumOfItemsInSockets(numOfItemsInSockets);
+		this.setSocketedItems(socketedItems);
 	}
 
 	public String getHexString() {
@@ -181,5 +185,13 @@ public class Item {
 
 	public void setNumOfItemsInSockets(int numOfItemsInSockets) {
 		this.numOfItemsInSockets = numOfItemsInSockets;
+	}
+
+	public List<Item> getSocketedItems() {
+		return socketedItems;
+	}
+
+	public void setSocketedItems(List<Item> socketedItems) {
+		this.socketedItems = socketedItems;
 	}
 }

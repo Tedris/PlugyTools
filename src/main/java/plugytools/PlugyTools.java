@@ -30,6 +30,8 @@ public class PlugyTools {
 		if (input != null && input.contains("2")) {
 			createSaveProperties();
 		}
+		
+		scanner.close();
 	}
 
 	private static void scanSaveDirectory(String saveDirectory) throws IOException {
@@ -173,6 +175,7 @@ public class PlugyTools {
 		currentIndex = firstJMHeader+2;
 
 		System.out.println("Number of Items in " + inventoryType + ": " + nbItem);
+		Item currentSocketedItem = null;
 		for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
 			int currentJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
 			String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
@@ -195,8 +198,13 @@ public class PlugyTools {
 			}
 			if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
 				nbItem += item.getNumOfItemsInSockets();
+				currentSocketedItem = item;
 			}
-			inventory.getItems().add(item);
+			if (Constants.SOCKET.equalsIgnoreCase(item.getLocation())) {
+				currentSocketedItem.getSocketedItems().add(item);
+			} else {
+				inventory.getItems().add(item);
+			}
 		}
 		inventory.setEndIndex(currentIndex);
 		return inventory;
@@ -381,6 +389,7 @@ public class PlugyTools {
 			int nbItem = data[jmHeaderIndex+2];
 			currentIndex = jmHeaderIndex+2;
 			System.out.println("Number of Items in stash: " + nbItem);
+			Item currentSocketedItem = null;
 			for (int currentItemNum = 0; currentItemNum < nbItem; currentItemNum++) {
 				int currentJmItemHeaderIndex = getStartIndexOfNextHeader(Constants.JM, data, currentIndex);
 				String hexIndex = getHexStringFromInt(currentJmItemHeaderIndex);
@@ -409,8 +418,13 @@ public class PlugyTools {
 				
 				if (item.getNumOfItemsInSockets() > 0 && !item.isSimple()) {
 					nbItem += item.getNumOfItemsInSockets();
+					currentSocketedItem = item;
 				}
-				stash.getItems().add(item);
+				if (Constants.SOCKET.equalsIgnoreCase(item.getLocation())) {
+					currentSocketedItem.getSocketedItems().add(item);
+				} else {
+					stash.getItems().add(item);
+				}
 			}
 			stashes.add(stash);
 		}
@@ -449,9 +463,11 @@ public class PlugyTools {
 				itemType = itemType.trim();
 				
 				int numOfItemsInSockets = 0;
+				List<Item> socketedItems = null;
 				if (isSocketed) {
 					//get number of sockets
 					numOfItemsInSockets = getDecimalFromSubstring(binaryString, 108, 111, true);
+					socketedItems = new ArrayList<>();
 				}
 				
 				ComplexData complexData = new ComplexData();
@@ -557,7 +573,7 @@ public class PlugyTools {
 					
 					complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId, itemName);
 				}
-				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex, numOfItemsInSockets);
+				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex, numOfItemsInSockets, socketedItems);
 			}
 		} catch (StringIndexOutOfBoundsException sIdx) {
 			System.err.println("Error parsing item: " + itemHex);
