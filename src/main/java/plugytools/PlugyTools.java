@@ -1,15 +1,37 @@
 package plugytools;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import domain.*;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Properties;
+import java.util.Scanner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import domain.ComplexData;
+import domain.Constants;
+import domain.Inventory;
+import domain.Item;
+import domain.Library;
+import domain.PlayerCharacter;
+import domain.SetConstants;
+import domain.SetItems;
+import domain.Stash;
+import domain.StashCollection;
+import domain.UniqueConstants;
+import domain.UniqueItems;
 
 public class PlugyTools {
 		
@@ -35,13 +57,13 @@ public class PlugyTools {
 	}
 
 	private static void scanSaveDirectory(String saveDirectory) throws IOException {
+		String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
+
 		Library library = new Library();
 		List<StashCollection> stashes = getStashesFromDirectory(saveDirectory);
-		List<PlayerCharacter> playerCharacters = getCharactersFromDirectory(saveDirectory);
+		List<PlayerCharacter> playerCharacters = getCharactersFromDirectory(saveDirectory, timestamp);
 		library.setStashes(stashes);
 		library.setPlayerCharacters(playerCharacters);
-
-		String timestamp = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
 
 		try (FileWriter file = new FileWriter("stashdebug-"+timestamp+".json" )) {
 			ObjectMapper mapper = new ObjectMapper();
@@ -128,7 +150,7 @@ public class PlugyTools {
 		return stashCollections;
 	}
 
-	private static List<PlayerCharacter> getCharactersFromDirectory(String saveDirectory) {
+	private static List<PlayerCharacter> getCharactersFromDirectory(String saveDirectory, String timestamp) throws IOException {
 		List<PlayerCharacter> playerCharacters = new ArrayList<>();
 		File directory = new File(saveDirectory);
 		File[] files = directory.listFiles((d, name) -> name.endsWith(".d2s"));
@@ -138,9 +160,22 @@ public class PlugyTools {
 				PlayerCharacter playerCharacter = getCharacterData(character);
 				playerCharacter.setFileName(character.getName());
 				playerCharacters.add(playerCharacter);
+				writeCharacterToFile(playerCharacter, timestamp);
 			}
 		}
 		return playerCharacters;
+	}
+
+	private static void writeCharacterToFile(PlayerCharacter playerCharacter, String timestamp) throws IOException {
+		try (FileWriter file = new FileWriter(playerCharacter.getFileName()+"-"+timestamp+".txt" )) {
+			file.write("Character: " + playerCharacter.getFileName() + "\n");
+			file.write("\n");
+			file.write("Inventory Items:\n");
+			file.write("\n");
+			for (Item characterInventory : playerCharacter.getCharacterItems().getItems()) {
+				file.write("Item type: " + characterInventory.getItemType());
+			}
+		}		
 	}
 
 	public static PlayerCharacter getCharacterData(File character) {
