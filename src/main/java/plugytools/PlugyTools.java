@@ -172,8 +172,13 @@ public class PlugyTools {
 			file.write("\n");
 			file.write("Inventory Items:\n");
 			file.write("\n");
-			for (Item characterInventory : playerCharacter.getCharacterItems().getItems()) {
-				file.write("Item type: " + characterInventory.getItemType());
+			for (Item characterItem : playerCharacter.getCharacterItems().getItems()) {
+				file.write("Item type: " + characterItem.getItemType() + "\n");
+				if (characterItem.isSimple()) {
+					
+				} else {
+					file.write("Item name: " + characterItem.getComplexData().getItemName() + "\n");
+				}
 			}
 		}		
 	}
@@ -607,6 +612,8 @@ public class PlugyTools {
 					}
 					
 					complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId, itemName);
+				} else {
+					getNameFromItemType(itemType);
 				}
 				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex, numOfItemsInSockets, socketedItems);
 			}
@@ -615,6 +622,11 @@ public class PlugyTools {
 		}
 		
 		return item;
+	}
+
+	private static void getNameFromItemType(String itemType) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private static String getBinaryStringFromItemHex(String itemHex) {
