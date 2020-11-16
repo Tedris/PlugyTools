@@ -25,6 +25,8 @@ import domain.Constants;
 import domain.Inventory;
 import domain.Item;
 import domain.Library;
+import domain.MiscItem;
+import domain.MiscItems;
 import domain.PlayerCharacter;
 import domain.SetConstants;
 import domain.SetItems;
@@ -174,11 +176,7 @@ public class PlugyTools {
 			file.write("\n");
 			for (Item characterItem : playerCharacter.getCharacterItems().getItems()) {
 				file.write("Item type: " + characterItem.getItemType() + "\n");
-				if (characterItem.isSimple()) {
-					
-				} else {
-					file.write("Item name: " + characterItem.getComplexData().getItemName() + "\n");
-				}
+				file.write("Item name: " + characterItem.getComplexData().getItemName() + "\n");
 			}
 		}		
 	}
@@ -613,7 +611,9 @@ public class PlugyTools {
 					
 					complexData = new ComplexData(itemId, itemLevel, itemQualityString, fileId, itemName);
 				} else {
-					getNameFromItemType(itemType);
+					complexData = new ComplexData();
+					String itemName = getNameFromItemType(itemType);
+					complexData.setItemName(itemName);
 				}
 				item = new Item(itemHex, itemArray, isIdentified, isSocketed, isEar, isSimple, isEthereal, isPersonalized, isRuneword, location, colNum, rowNum, itemType, binaryString, complexData, hexIndex, numOfItemsInSockets, socketedItems);
 			}
@@ -624,9 +624,15 @@ public class PlugyTools {
 		return item;
 	}
 
-	private static void getNameFromItemType(String itemType) {
+	private static String getNameFromItemType(String itemType) {
 		// TODO Auto-generated method stub
-		
+		List<MiscItem> miscItems = MiscItems.getInstance().getMiscItems();
+		for (MiscItem miscItem : miscItems) {
+			if (itemType.equalsIgnoreCase(miscItem.getNameStrComponent())) {
+				return miscItem.getName();
+			}
+		}
+		return null;
 	}
 
 	private static String getBinaryStringFromItemHex(String itemHex) {
